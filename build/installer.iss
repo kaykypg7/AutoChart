@@ -7,7 +7,7 @@
 #define MyAppName        "Clone Hero Auto-Charter"
 #define MyAppVersion     "1.0.0"
 #define MyAppPublisher   "Kayky Carvalho"
-#define MyAppURL         "https://github.com/kaykycarvalho/CloneHeroAutoChart"
+#define MyAppURL         "https://github.com/kaykypg7/AutoChart"
 #define MyAppExeName     "CloneHeroAutoChart.exe"
 #define MyAppId          "{{8E2A5F9B-1C77-4F3A-B2AC-7D5C9E1A4E90}"
 
@@ -30,7 +30,6 @@ AllowNoIcons=yes
 LicenseFile=..\LICENSE
 OutputDir=..\release
 OutputBaseFilename=CloneHeroAutoChart-Setup-{#MyAppVersion}
-SetupIconFile=..\resources\icon.ico
 Compression=lzma2/ultra64
 SolidCompression=yes
 LZMAUseSeparateProcess=yes
