@@ -1,0 +1,238 @@
+{
+  "source_charts": [
+    "Fell In Luv",
+    "Mileage",
+    "NewwChoppa",
+    "Magnolia",
+    "EVILJ0RDAN"
+  ],
+  "corpus_bpm_avg": 153.71,
+  "corpus_duration_s": 773.96,
+  "median_notes_per_bar": 3.0,
+  "notes_per_bar_norm_bpm": 2.338,
+  "chord_rate": 0.2679,
+  "hopo_rate": 0.0,
+  "sp_phrases_per_min": 9.303,
+  "fret_histogram": {
+    "0": 370,
+    "1": 289,
+    "2": 402,
+    "3": 364,
+    "4": 337,
+    "7": 382
+  },
+  "fret_distribution": {
+    "0": 0.1726,
+    "1": 0.1348,
+    "2": 0.1875,
+    "3": 0.1698,
+    "4": 0.1572,
+    "7": 0.1782
+  },
+  "interval_histogram": {
+    "0-48": 161,
+    "48-96": 35,
+    "96-192": 330,
+    "192-384": 961,
+    "384-768": 197,
+    "768+": 2
+  },
+  "interval_distribution": {
+    "0-48": 0.0955,
+    "48-96": 0.0208,
+    "96-192": 0.1957,
+    "192-384": 0.57,
+    "384-768": 0.1168,
+    "768+": 0.0012
+  },
+  "per_bpm_bucket": {
+    "mid": {
+      "charts": 1.0,
+      "median_notes_per_bar": 4,
+      "notes_per_bar_norm_bpm": 3.754,
+      "chord_rate": 0.0,
+      "hopo_rate": 0.0,
+      "sp_phrases_per_min": 0.0
+    },
+    "fast": {
+      "charts": 4.0,
+      "median_notes_per_bar": 3.0,
+      "notes_per_bar_norm_bpm": 2.274,
+      "chord_rate": 0.3186,
+      "hopo_rate": 0.0,
+      "sp_phrases_per_min": 11.05
+    }
+  },
+  "per_chart": [
+    {
+      "name": "Fell In Luv",
+      "track": "ExpertSingle",
+      "bpm_avg": 163.0,
+      "bpm_bucket": "fast",
+      "duration_s": 200.15,
+      "bars": 135.94,
+      "note_event_count": 746,
+      "chord_group_count": 373,
+      "chord_group_with_multi": 373,
+      "hopo_force_count": 0,
+      "sp_phrase_count": 8,
+      "median_notes_per_bar": 2.5,
+      "notes_per_bar_norm_bpm": 1.84,
+      "chord_rate": 1.0,
+      "hopo_rate": 0.0,
+      "sp_phrases_per_min": 2.398,
+      "fret_histogram": {
+        "0": 68,
+        "1": 136,
+        "2": 203,
+        "3": 237,
+        "4": 102,
+        "7": 0
+      },
+      "interval_histogram": {
+        "0-48": 0,
+        "48-96": 0,
+        "96-192": 34,
+        "192-384": 269,
+        "384-768": 69,
+        "768+": 0
+      }
+    },
+    {
+      "name": "Mileage",
+      "track": "ExpertSingle",
+      "bpm_avg": 151.0,
+      "bpm_bucket": "fast",
+      "duration_s": 147.62,
+      "bars": 92.88,
+      "note_event_count": 502,
+      "chord_group_count": 502,
+      "chord_group_with_multi": 0,
+      "hopo_force_count": 0,
+      "sp_phrase_count": 106,
+      "median_notes_per_bar": 6.0,
+      "notes_per_bar_norm_bpm": 4.768,
+      "chord_rate": 0.0,
+      "hopo_rate": 0.0,
+      "sp_phrases_per_min": 43.085,
+      "fret_histogram": {
+        "0": 62,
+        "1": 76,
+        "2": 39,
+        "3": 63,
+        "4": 40,
+        "7": 222
+      },
+      "interval_histogram": {
+        "0-48": 161,
+        "48-96": 35,
+        "96-192": 156,
+        "192-384": 127,
+        "384-768": 22,
+        "768+": 0
+      }
+    },
+    {
+      "name": "NewwChoppa",
+      "track": "ExpertSingle",
+      "bpm_avg": 127.88,
+      "bpm_bucket": "mid",
+      "duration_s": 122.35,
+      "bars": 65.19,
+      "note_event_count": 269,
+      "chord_group_count": 269,
+      "chord_group_with_multi": 0,
+      "hopo_force_count": 0,
+      "sp_phrase_count": 0,
+      "median_notes_per_bar": 4,
+      "notes_per_bar_norm_bpm": 3.754,
+      "chord_rate": 0.0,
+      "hopo_rate": 0.0,
+      "sp_phrases_per_min": 0.0,
+      "fret_histogram": {
+        "0": 70,
+        "1": 47,
+        "2": 64,
+        "3": 34,
+        "4": 54,
+        "7": 0
+      },
+      "interval_histogram": {
+        "0-48": 0,
+        "48-96": 0,
+        "96-192": 32,
+        "192-384": 235,
+        "384-768": 0,
+        "768+": 1
+      }
+    },
+    {
+      "name": "Magnolia",
+      "track": "ExpertDoubleBass",
+      "bpm_avg": 163.0,
+      "bpm_bucket": "fast",
+      "duration_s": 179.36,
+      "bars": 121.81,
+      "note_event_count": 307,
+      "chord_group_count": 307,
+      "chord_group_with_multi": 0,
+      "hopo_force_count": 0,
+      "sp_phrase_count": 0,
+      "median_notes_per_bar": 3,
+      "notes_per_bar_norm_bpm": 2.209,
+      "chord_rate": 0.0,
+      "hopo_rate": 0.0,
+      "sp_phrases_per_min": 0.0,
+      "fret_histogram": {
+        "0": 140,
+        "1": 0,
+        "2": 56,
+        "3": 0,
+        "4": 111,
+        "7": 0
+      },
+      "interval_histogram": {
+        "0-48": 0,
+        "48-96": 0,
+        "96-192": 29,
+        "192-384": 250,
+        "384-768": 26,
+        "768+": 1
+      }
+    },
+    {
+      "name": "EVILJ0RDAN",
+      "track": "ExpertSingle",
+      "bpm_avg": 154.0,
+      "bpm_bucket": "fast",
+      "duration_s": 124.48,
+      "bars": 79.88,
+      "note_event_count": 320,
+      "chord_group_count": 240,
+      "chord_group_with_multi": 80,
+      "hopo_force_count": 0,
+      "sp_phrase_count": 6,
+      "median_notes_per_bar": 3.0,
+      "notes_per_bar_norm_bpm": 2.338,
+      "chord_rate": 0.3333,
+      "hopo_rate": 0.0,
+      "sp_phrases_per_min": 2.892,
+      "fret_histogram": {
+        "0": 30,
+        "1": 30,
+        "2": 40,
+        "3": 30,
+        "4": 30,
+        "7": 160
+      },
+      "interval_histogram": {
+        "0-48": 0,
+        "48-96": 0,
+        "96-192": 79,
+        "192-384": 80,
+        "384-768": 80,
+        "768+": 0
+      }
+    }
+  ]
+}

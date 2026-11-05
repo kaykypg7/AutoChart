@@ -1,0 +1,10 @@
+customtkinter>=5.2.0
+yt-dlp>=2024.1.0
+spotipy>=2.23.0
+librosa>=0.10.1
+numpy>=1.26.0
+scipy>=1.11.0
+soundfile>=0.12.1
+Pillow>=10.0.0
+requests>=2.31.0
+pyinstaller>=6.0

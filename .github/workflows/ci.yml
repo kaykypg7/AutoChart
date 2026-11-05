@@ -1,0 +1,58 @@
+name: ci
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  tests:
+    name: pytest (${{ matrix.python }}, windows)
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+
+      - name: Set up ffmpeg
+        uses: AnimMouse/setup-ffmpeg@v1
+
+      - name: Install project + test deps
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+
+      - name: Run fast tests (resolver + packager + chart_writer)
+        shell: pwsh
+        run: pytest -m "not slow and not integration" --cov=core --cov-report=xml --cov-report=term
+
+      - name: Run slow tests (pipeline smoke + perf benchmark)
+        shell: pwsh
+        run: pytest -m slow --cov=core --cov-append --cov-report=xml --cov-report=term
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.python }}
+          path: coverage.xml
+
+      - name: Upload perf benchmark
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: perf-${{ matrix.python }}
+          path: tests/.benchmarks/last.json
