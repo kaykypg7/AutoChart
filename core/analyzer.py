@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 
@@ -37,7 +37,16 @@ class Analysis:
     key: str = ""
 
 
-def analyze_audio(path: Path, manual_bpm: Optional[float] = None) -> Analysis:
+def analyze_audio(path: Path, manual_bpm: Optional[float] = None,
+                  guitar_stem_path: Optional[Path] = None) -> Analysis:
+    """Analyze a mixed audio file.
+
+    When guitar_stem_path is provided (from Demucs pre-separation), the guitar
+    stem drives onset detection and pitch tracking — i.e. the chart's note
+    ticks and fret contour follow the lead guitar line, not whatever is loudest
+    in the full mix. Beats, tempo, RMS, and section boundaries still come from
+    the full signal (those are mix-level properties).
+    """
     import librosa
     try:
         y, sr = librosa.load(str(path), sr=SR, mono=True)
@@ -48,8 +57,23 @@ def analyze_audio(path: Path, manual_bpm: Optional[float] = None) -> Analysis:
 
     duration = librosa.get_duration(y=y, sr=sr)
 
-    # Harmonic/percussive separation — pitch work on harmonic, hit work on percussive.
+    # v1.12: when a guitar stem is supplied, swap it in for the harmonic-side
+    # work. The stem IS the harmonic content of just the guitar track — no HPSS
+    # needed on it, and percussive content is already stripped. Fall back to
+    # HPSS on the full mix when no stem is provided.
+    y_guitar = None
+    if guitar_stem_path is not None:
+        try:
+            y_g, _ = librosa.load(str(guitar_stem_path), sr=SR, mono=True)
+            if len(y_g) >= SR * 2:
+                y_guitar = y_g
+        except Exception:
+            y_guitar = None
+
+    # Harmonic/percussive separation on the full mix — pitch work falls back
+    # to y_h when no stem is available; percussive y_p always drives drums.
     y_h, y_p = librosa.effects.hpss(y, margin=3.0)
+    y_pitch = y_guitar if y_guitar is not None else y_h
 
     if manual_bpm and manual_bpm > 0:
         tempo = float(manual_bpm)
@@ -66,13 +90,20 @@ def analyze_audio(path: Path, manual_bpm: Optional[float] = None) -> Analysis:
     # Downbeats: every 4th beat (naive but works for 4/4, which Carti is 99% of).
     downbeats = beats[::4] if len(beats) else beats
 
-    # Harmonic + transient onset detection:
-    # y_h preserves tonal pitch but HPSS margin=3.0 smears sharp attacks into y_p.
-    # Blending with full-signal onset envelope ensures guitar, synth, and vocal attacks
-    # snap to the physical transient attack with zero smearing or latency.
-    full_env = librosa.onset.onset_strength(y=y, sr=sr, hop_length=HOP, aggregate=np.median)
-    h_env = librosa.onset.onset_strength(y=y_h, sr=sr, hop_length=HOP, aggregate=np.median)
-    combined_env = 0.5 * full_env + 0.5 * h_env
+    # Onset detection:
+    # - With a guitar stem: onsets come 100% from the stem's envelope. No
+    #   full-mix blending — the mix contaminated the chart with vocal syllables
+    #   and drum hits the listener never attributes to the guitar.
+    # - Without a stem: fall back to the old 50/50 blend of full-signal and
+    #   harmonic envelopes, which preserves backward behavior.
+    if y_guitar is not None:
+        combined_env = librosa.onset.onset_strength(
+            y=y_guitar, sr=sr, hop_length=HOP, aggregate=np.median,
+        )
+    else:
+        full_env = librosa.onset.onset_strength(y=y, sr=sr, hop_length=HOP, aggregate=np.median)
+        h_env = librosa.onset.onset_strength(y=y_h, sr=sr, hop_length=HOP, aggregate=np.median)
+        combined_env = 0.5 * full_env + 0.5 * h_env
     h_frames = librosa.onset.onset_detect(
         onset_envelope=combined_env, sr=sr, hop_length=HOP,
         pre_max=3, post_max=3, pre_avg=6, post_avg=6, delta=0.12, wait=2,

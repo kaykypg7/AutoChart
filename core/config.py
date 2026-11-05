@@ -60,6 +60,12 @@ class Settings:
     video_start_time_ms: int = 0       # offset in ms for video playback in song.ini (video_start_time)
     genre_profile: str = "auto"        # auto|trap|rock|pop|metal|default (v2.0 genre profile)
     manual_bpm: float = 0.0            # when > 0, overrides tempo detection with fixed BPM
+    use_stem_separation: bool = True   # v1.12: when True, run Demucs htdemucs_6s to isolate guitar
+                                        # stem before onset/pitch analysis. Trade-off: +2-5min/song
+                                        # on CPU and ~85MB model download on first run, in exchange
+                                        # for chart notes that track the lead guitar instead of the
+                                        # full mix (vocals + drums + synths all triggering phantom
+                                        # notes). Turn off for fast-draft runs.
 
     @classmethod
     def path(cls) -> Path:

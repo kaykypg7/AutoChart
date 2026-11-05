@@ -8,3 +8,12 @@ soundfile>=0.12.1
 Pillow>=10.0.0
 requests>=2.31.0
 pyinstaller>=6.0
+
+# Stem separation (optional at runtime — gated by Settings "use_stem_separation").
+# Pinning to CPU-only torch wheels keeps the bundle manageable (~250MB for torch).
+# Install via:
+#   pip install --upgrade torch torchaudio --index-url https://download.pytorch.org/whl/cpu
+#   pip install demucs
+demucs>=4.0.0
+torch>=2.0.0
+torchaudio>=2.0.0

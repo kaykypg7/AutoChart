@@ -40,6 +40,15 @@ hiddenimports += [m for m in collect_submodules("numba") if _keep(m)]
 hiddenimports += [m for m in collect_submodules("llvmlite") if _keep(m)]
 hiddenimports += [m for m in collect_submodules("scipy") if _keep(m)]
 hiddenimports += [m for m in collect_submodules("sklearn") if _keep(m)]
+# Demucs stem separator — guitar isolation path. Torch / torchaudio / demucs
+# are bundled as CPU-only wheels; the model weights (~85MB) are downloaded on
+# first run into the user's torch hub cache, not shipped in the installer.
+try:
+    hiddenimports += [m for m in collect_submodules("demucs") if _keep(m)]
+    hiddenimports += [m for m in collect_submodules("torch") if _keep(m)]
+    hiddenimports += [m for m in collect_submodules("torchaudio") if _keep(m)]
+except Exception:
+    pass
 hiddenimports += [
     "audioread",
     "soundfile",
@@ -65,9 +74,28 @@ numba_datas, numba_binaries, numba_hidden = collect_all("numba")
 llvm_datas, llvm_binaries, llvm_hidden = collect_all("llvmlite")
 ctk_datas, ctk_binaries, ctk_hidden = collect_all("customtkinter")
 
-datas += [d for d in numba_datas + llvm_datas + ctk_datas if _path_keep(d)]
-binaries += [b for b in numba_binaries + llvm_binaries + ctk_binaries if _path_keep(b)]
-hiddenimports += [h for h in (numba_hidden + llvm_hidden + ctk_hidden) if _keep(h)]
+# Bundle torch + torchaudio binaries + demucs datas (fallback to empty tuples if
+# the packages are missing in the build venv — the runtime will then just skip
+# stem separation and fall back to full-mix analysis).
+try:
+    torch_datas, torch_binaries, torch_hidden = collect_all("torch")
+except Exception:
+    torch_datas, torch_binaries, torch_hidden = [], [], []
+try:
+    ta_datas, ta_binaries, ta_hidden = collect_all("torchaudio")
+except Exception:
+    ta_datas, ta_binaries, ta_hidden = [], [], []
+try:
+    demucs_datas, demucs_binaries, demucs_hidden = collect_all("demucs")
+except Exception:
+    demucs_datas, demucs_binaries, demucs_hidden = [], [], []
+
+datas += [d for d in numba_datas + llvm_datas + ctk_datas +
+          torch_datas + ta_datas + demucs_datas if _path_keep(d)]
+binaries += [b for b in numba_binaries + llvm_binaries + ctk_binaries +
+             torch_binaries + ta_binaries + demucs_binaries if _path_keep(b)]
+hiddenimports += [h for h in (numba_hidden + llvm_hidden + ctk_hidden +
+                              torch_hidden + ta_hidden + demucs_hidden) if _keep(h)]
 
 resources_dir = PROJECT_ROOT / "resources"
 if (resources_dir / "ffmpeg.exe").exists():

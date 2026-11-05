@@ -246,6 +246,7 @@ class SettingsScreen(ctk.CTkToplevel):
         self.v_drums = ctk.BooleanVar(value=settings.include_drums)
         self.v_video = ctk.BooleanVar(value=settings.download_video)
         self.v_open = ctk.BooleanVar(value=settings.open_folder_after_chart)
+        self.v_stems = ctk.BooleanVar(value=getattr(settings, "use_stem_separation", True))
         ctk.CTkCheckBox(self, text="Transcribe drums track",
                         variable=self.v_drums, text_color=T.TEXT,
                         fg_color=T.ACCENT, hover_color=T.ACCENT_HOVER
@@ -253,6 +254,11 @@ class SettingsScreen(ctk.CTkToplevel):
         row += 1
         ctk.CTkCheckBox(self, text="Download background video (increases size by 50-100MB per song)",
                         variable=self.v_video, text_color=T.TEXT,
+                        fg_color=T.ACCENT, hover_color=T.ACCENT_HOVER
+                       ).grid(row=row, column=0, sticky="w", padx=T.PAD, pady=(2, 2))
+        row += 1
+        ctk.CTkCheckBox(self, text="Isolate guitar stem with Demucs AI (much better charts, +2-5 min per song)",
+                        variable=self.v_stems, text_color=T.TEXT,
                         fg_color=T.ACCENT, hover_color=T.ACCENT_HOVER
                        ).grid(row=row, column=0, sticky="w", padx=T.PAD, pady=(2, 2))
         row += 1
@@ -280,6 +286,7 @@ class SettingsScreen(ctk.CTkToplevel):
             self.settings.cookies_txt_path = self.e_cookies_txt.get().strip()
             self.settings.include_drums = bool(self.v_drums.get())
             self.settings.download_video = bool(self.v_video.get())
+            self.settings.use_stem_separation = bool(self.v_stems.get())
             self.settings.open_folder_after_chart = bool(self.v_open.get())
             self.settings.save()
             self.on_save(self.settings)

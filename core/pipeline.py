@@ -177,11 +177,38 @@ class Pipeline:
                         video_file = None
                 self._check()
 
+            guitar_stem: Optional[Path] = None
+            if getattr(self.settings, "use_stem_separation", False):
+                from core import stem_separator
+                if stem_separator.is_available():
+                    p.stage, p.pct, p.message = "stems", 0.32, "Isolating guitar stem (Demucs, 2-5 min)..."
+                    progress(p)
+                    with _stage("stems"):
+                        try:
+                            def _stem_progress(msg: str) -> None:
+                                p.message = msg
+                                progress(p)
+                            guitar_stem = stem_separator.separate_guitar_stem(
+                                dr.audio_path, progress_cb=_stem_progress,
+                            )
+                        except Exception as e:
+                            # Fall back to full-mix analysis — slower chart quality,
+                            # but the song still ships.
+                            log.warning("Stem separation failed, falling back to full mix: %s", e)
+                            guitar_stem = None
+                    self._check()
+                else:
+                    log.info("Stem separation requested but demucs/torch not installed; using full mix.")
+
             p.stage, p.pct, p.message = "analyzing", 0.40, "Analyzing audio..."
             progress(p)
             with _stage("analyze"):
                 manual_bpm = getattr(self.settings, "manual_bpm", 0.0)
-                analysis = analyze_audio(dr.audio_path, manual_bpm=manual_bpm if manual_bpm > 0 else None)
+                analysis = analyze_audio(
+                    dr.audio_path,
+                    manual_bpm=manual_bpm if manual_bpm > 0 else None,
+                    guitar_stem_path=guitar_stem,
+                )
             self._check()
 
             drums = None
