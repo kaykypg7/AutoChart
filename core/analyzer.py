@@ -80,6 +80,23 @@ def analyze_audio(path: Path, manual_bpm: Optional[float] = None) -> Analysis:
     onsets = librosa.frames_to_time(h_frames, sr=sr, hop_length=HOP)
     onset_strength = combined_env[h_frames] if len(h_frames) else np.array([])
 
+    # v1.12: Boundary silence gate. Intro/outro padding and ambient tails
+    # often produced a lone phantom note at the very start or end of the chart —
+    # onset_detect fires on any faint transient and the RMS floor was low enough
+    # to pass. Drop onsets whose frame RMS sits below the song's 15th percentile:
+    # that cuts real-silence false triggers while keeping any onset that lives
+    # inside the music proper (where even the quietest section runs above p15).
+    full_rms = librosa.feature.rms(y=y, hop_length=HOP)[0]
+    if len(full_rms) >= 10 and len(onsets):
+        rms_floor = float(np.percentile(full_rms, 15))
+        kept_idx = []
+        for i, t in enumerate(onsets):
+            fi = min(int(t * sr / HOP), len(full_rms) - 1)
+            if full_rms[fi] >= rms_floor:
+                kept_idx.append(i)
+        onsets = onsets[kept_idx] if kept_idx else onsets[:0]
+        onset_strength = onset_strength[kept_idx] if kept_idx else onset_strength[:0]
+
     # Percussive onsets drive drum accents on top of the beat template.
     p_env = librosa.onset.onset_strength(y=y_p, sr=sr, hop_length=HOP, aggregate=np.median)
     p_frames = librosa.onset.onset_detect(
