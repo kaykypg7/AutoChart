@@ -5,7 +5,7 @@
 ; Requires Inno Setup 6+ installed (iscc.exe on PATH, or full path invocation).
 
 #define MyAppName        "Clone Hero Auto-Charter"
-#define MyAppVersion     "1.0.0"
+#define MyAppVersion     "1.1.0"
 #define MyAppPublisher   "Kayky Carvalho"
 #define MyAppURL         "https://github.com/kaykypg7/AutoChart"
 #define MyAppExeName     "CloneHeroAutoChart.exe"

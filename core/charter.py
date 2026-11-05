@@ -219,15 +219,17 @@ def _beat_locked_tick(t: float, beats, bpm: float, subdiv: int = 4) -> int:
         beat_dur = beats_list[idx] - beat_t
         frac = (t - beat_t) / beat_dur if beat_dur > 1e-6 else 0.0
 
-    # Snap frac with musical grid gravity: quarter notes (0.0/1.0) and eighth notes (0.50)
-    # have higher gravity than 16th subdivisions, locking notes tightly to the rhythm.
-    if frac < 0.14:
+    # Snap frac with STRONG musical grid gravity: quarter notes (0.0/1.0) win 40% of
+    # frac space, eighth notes (0.50) win 30%, and 16th subdivisions (0.25/0.75) only
+    # catch outliers that are genuinely off-pulse. Pulls the chart's note cloud into
+    # the groove the listener feels, instead of smearing onsets across the 16th grid.
+    if frac < 0.20:
         snapped_frac = 0.0
-    elif frac > 0.86:
+    elif frac > 0.80:
         snapped_frac = 1.0
-    elif 0.38 <= frac <= 0.62:
+    elif 0.35 <= frac <= 0.65:
         snapped_frac = 0.50
-    elif 0.14 <= frac < 0.38:
+    elif 0.20 <= frac < 0.35:
         snapped_frac = 0.25
     else:
         snapped_frac = 0.75
@@ -466,6 +468,26 @@ def _guitar_notes(a: Analysis, events: Optional[List[SectionEvent]] = None,
             continue
         if per_bar.get(bar, 0) >= bar_limit:
             continue
+
+        # v1.11: Pulse-weighted density filter. Notes that land ON the beat (quarter)
+        # are always emitted; notes on 8ths need moderate onset strength; off-beat
+        # 16ths need strong onset strength. This pulls the chart's rhythmic contour
+        # toward what the listener's foot actually taps, instead of a flat 16th grid.
+        tick_in_beat = tick % RESOLUTION
+        half = RESOLUTION // 2
+        quarter = RESOLUTION // 4
+        onset_s = kept[i][1] if i < len(kept) else 1.0
+        if len(strengths) >= 10:
+            if tick_in_beat == 0:
+                keep_threshold = 0.0  # on-beat: always keep
+            elif tick_in_beat == half:
+                keep_threshold = float(np.percentile(strengths, 30))
+            elif tick_in_beat in (quarter, quarter * 3):
+                keep_threshold = float(np.percentile(strengths, 55))
+            else:
+                keep_threshold = float(np.percentile(strengths, 70))
+            if onset_s < keep_threshold:
+                continue
 
         # v1.9.1 / v2.0: default sustain per genre profile
         length = 0
@@ -1138,11 +1160,25 @@ def gen_downcharts(expert: List[ChartNote]) -> Dict[str, List[ChartNote]]:
     for n in singles:
         bars_singles.setdefault(n.tick // bar_ticks, []).append(n)
 
-    # HardSingle: keep every 2 notes per bar (stride 2)
+    # HardSingle (v1.11): keep every quarter-note (tib==0) and 8th-note (tib==96)
+    # position — those are the beats listeners feel. Off-beat 16ths and sub-16th
+    # drift are kept alternating (every other one). Hand-charted Hard sits ~55-70%
+    # of Expert density; the old blanket stride-2 was landing closer to 50% and
+    # felt like Easy. The pulse-grid rule below holds that sweet spot regardless
+    # of how onsets are distributed on the sixteenth grid.
+    half_beat = RESOLUTION // 2  # 96 ticks = 8th-note position within beat
     hard: List[ChartNote] = []
     for b in sorted(bars_singles):
         bar_notes = bars_singles[b]
-        hard.extend(bar_notes[::2])
+        weak_toggle = 0
+        for n in bar_notes:
+            tib = n.tick % RESOLUTION
+            if tib == 0 or tib == half_beat:
+                hard.append(n)
+            else:
+                if weak_toggle % 2 == 0:
+                    hard.append(n)
+                weak_toggle += 1
 
     # MediumSingle: strip opens (fret 7), keep 1 in 3 notes per bar (stride 3).
     # Clamp frets to 0..3 (Green, Red, Yellow, Blue only — no Orange on Medium).
