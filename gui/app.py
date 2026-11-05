@@ -3,6 +3,7 @@ import queue
 import subprocess
 import threading
 import traceback
+import webbrowser
 from pathlib import Path
 from typing import List, Optional
 
@@ -11,11 +12,13 @@ import customtkinter as ctk
 from gui import theme as T
 from gui.screens import InputScreen, ProgressScreen, ResultsScreen, SettingsScreen
 from core import pipeline as pipeline_mod
+from core import updater
 from core.config import Settings
 from core.errors import InputError, SpotifyAuthError
 from core.resolver import InputKind, resolve
 from core.search import SearchResult, yt_playlist, yt_search
 from core.spotify_client import SpotifyClient, TrackMeta
+from core.version import __version__
 
 
 class App(ctk.CTk):
@@ -53,6 +56,82 @@ class App(ctk.CTk):
         self._pending_spotify: List[TrackMeta] = []
 
         self.after(80, self._drain_events)
+        # Fire the update check 1.5s after launch so the main UI paints first.
+        # Fails open: if GitHub is unreachable or rate-limited, we silently stay quiet.
+        self.after(1500, self._check_for_updates)
+
+    def _check_for_updates(self) -> None:
+        def _on_result(info):
+            if not info or not info.is_newer:
+                return
+            # Thread -> Tk main loop
+            self.after(0, lambda: self._show_update_popup(info))
+        updater.check_async(_on_result)
+
+    def _show_update_popup(self, info: "updater.UpdateInfo") -> None:
+        try:
+            win = ctk.CTkToplevel(self)
+            win.title("Update available")
+            win.geometry("460x240")
+            win.configure(fg_color=T.BG)
+            win.transient(self)
+            try:
+                win.grab_set()
+            except Exception:
+                pass
+            win.resizable(False, False)
+
+            ctk.CTkLabel(
+                win, text="New version available",
+                font=T.FONT_H2, text_color=T.TEXT,
+            ).pack(pady=(T.PAD, 4))
+
+            ctk.CTkLabel(
+                win,
+                text=f"You have v{info.current}. Latest is {info.latest}.",
+                font=T.FONT_BODY, text_color=T.MUTED,
+            ).pack(pady=(0, T.PAD))
+
+            msg = ("Download and run the installer to update. The new version\n"
+                   "writes over the current install; your settings are kept.")
+            ctk.CTkLabel(win, text=msg, font=T.FONT_BODY, text_color=T.TEXT,
+                         justify="center").pack(pady=(0, T.PAD))
+
+            btns = ctk.CTkFrame(win, fg_color=T.BG)
+            btns.pack(pady=(0, T.PAD))
+
+            def _open_download():
+                target = info.installer_url or info.html_url
+                try:
+                    webbrowser.open(target)
+                except Exception:
+                    pass
+                win.destroy()
+
+            def _open_page():
+                try:
+                    webbrowser.open(info.html_url)
+                except Exception:
+                    pass
+                win.destroy()
+
+            ctk.CTkButton(
+                btns, text="Download installer", width=180,
+                fg_color=T.ACCENT, hover_color=T.ACCENT, text_color=T.TEXT,
+                command=_open_download,
+            ).pack(side="left", padx=6)
+            ctk.CTkButton(
+                btns, text="View release notes", width=160,
+                fg_color=T.PANEL_HI, hover_color=T.ACCENT, text_color=T.TEXT,
+                command=_open_page,
+            ).pack(side="left", padx=6)
+            ctk.CTkButton(
+                btns, text="Later", width=90,
+                fg_color=T.PANEL, hover_color=T.PANEL_HI, text_color=T.MUTED,
+                command=win.destroy,
+            ).pack(side="left", padx=6)
+        except Exception:
+            traceback.print_exc()
 
     def _build_top_bar(self) -> None:
         bar = ctk.CTkFrame(self, fg_color=T.PANEL, height=48, corner_radius=0)
